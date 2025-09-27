@@ -1,0 +1,25 @@
+name: Sync Branches
+
+on:
+  # This workflow runs whenever a push is made to the main branch
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          # We need to fetch all branches and history
+          fetch-depth: 0
+
+      - name: Sync all open pull requests with the main branch
+        uses: repo-sync/pull-request-sync@v2
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          # If a conflict is found, the action will label the PR and leave a comment
+          pr_label: "sync-conflict"
+          pr_comment: "This pull request has a merge conflict with the `main` branch and could not be automatically updated. Please resolve the conflict manually."

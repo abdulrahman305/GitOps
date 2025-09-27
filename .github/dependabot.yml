@@ -1,0 +1,20 @@
+# This is a basic dependabot.yml file to get you started.
+
+version: 2
+updates:
+  # Enable version updates for npm (in the /app directory)
+  - package-ecosystem: "npm"
+    directory: "/app"
+    schedule:
+      interval: "daily"
+    # Automatically assign reviewers or labels if you want
+    # assignees:
+    #  - "your-username"
+    # labels:
+    #  - "dependencies"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"

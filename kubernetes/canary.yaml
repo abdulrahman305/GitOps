@@ -1,0 +1,37 @@
+apiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: hello-gitops-canary
+  namespace: default
+spec:
+  # The deployment that this canary will manage
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: hello-gitops-app
+
+  # The service that Flagger will use for traffic shifting
+  service:
+    port: 80
+    targetPort: 8080
+
+  # The analysis process for the canary release
+  analysis:
+    # How often to run the analysis
+    interval: 1m
+    # Maximum number of failed checks before a rollback is triggered
+    threshold: 5
+    # The sequence of traffic weight shifts
+    stepWeights: [10, 25, 50]
+    # The metrics that define a successful release
+    metrics:
+      - name: request-success-rate
+        # Check that the success rate of HTTP requests is above 99%
+        thresholdRange:
+          min: 99
+        interval: 1m
+      - name: request-duration
+        # Check that the average request duration is below 500ms
+        thresholdRange:
+          max: 500
+        interval: 1m

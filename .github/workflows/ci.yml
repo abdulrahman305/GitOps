@@ -1,0 +1,50 @@
+name: Build, Push, and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to commit back to the repo
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ghcr.io/${{ github.repository }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./app
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Update Kubernetes deployment with new image tag
+        run: |
+          IMAGE_TAG=${{ steps.meta.outputs.version }}
+          echo "New image tag is: $IMAGE_TAG"
+          sed -i "s|image: .*|image: ${{ steps.meta.outputs.tags }}|" kubernetes/deployment.yaml
+
+      - name: Commit and push the updated deployment manifest
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "ci: deploy new image version ${{ steps.meta.outputs.version }}"
+          file_pattern: kubernetes/deployment.yaml

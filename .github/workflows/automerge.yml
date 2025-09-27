@@ -1,0 +1,30 @@
+name: Auto-Merge PRs
+
+on:
+  # This workflow runs on pull request events and status check updates
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+  status: {}
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    # This job only runs for PRs that are not in draft mode
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Auto-merge
+        uses: pascalgn/automerge-action@v0.16.2
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          # Options for the merge action
+          MERGE_METHOD: "squash"
+          MERGE_COMMIT_MESSAGE: "pull-request-title-and-description"
+          # A list of checks that must pass before merging
+          MERGE_REQUIRED_APPROVALS: "0"
+          # The PR must be in a mergeable state (no conflicts)
+          MERGE_MERGEABLE_STATE: "MERGEABLE"
+          # All status checks must be successful
+          MERGE_STATUS_CHECKS: "SUCCESS"
